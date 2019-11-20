@@ -369,9 +369,9 @@ public class CreateApplicationBundleMojo extends AbstractMojo {
                         pluginsDirectory.createFile();
                     }
 
-                    FileObject sourceFolder = fsManager.resolveFile(jreRoot, "Contents/Home");
+                    FileObject sourceFolder = fsManager.resolveFile(jreRoot, "Contents/Home/jre");
                     if (!sourceFolder.exists()) {
-                        sourceFolder = fsManager.resolveFile(jreRoot, "Contents/Home/jre");
+                        sourceFolder = fsManager.resolveFile(jreRoot, "Contents/Home");
                     }
 
                     getLog().info("Copying the JRE Folder from : [" + sourceFolder + "] to PlugIn folder: [" + pluginsDirectory + "]");
