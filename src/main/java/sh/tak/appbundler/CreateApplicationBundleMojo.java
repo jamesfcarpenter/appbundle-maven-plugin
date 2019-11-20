@@ -110,7 +110,7 @@ public class CreateApplicationBundleMojo extends AbstractMojo {
      * scope that are not distributed with the bundle but have a known location
      * on the system. <br/><br/>
      *
-     * @see http://jira.codehaus.org/browse/MOJO-874
+     * @see <a href="http://jira.codehaus.org/browse/MOJO-874">MOJO-874</a>
      * @parameter
      */
     private List<String> additionalClasspath;
@@ -702,9 +702,9 @@ public class CreateApplicationBundleMojo extends AbstractMojo {
     /**
      * Scan a fileset and get a list of files which it contains.
      *
-     * @param fileset
+     * @param sourceDirectory
+     * @param fileSet
      * @return list of files contained within a fileset.
-     * @throws FileNotFoundException
      */
     private List<String> scanFileSet(File sourceDirectory, FileSet fileSet) {
         final String[] emptyStringArray = {};
