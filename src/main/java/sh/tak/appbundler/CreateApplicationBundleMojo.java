@@ -24,11 +24,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.xml.stream.XMLInputFactory;
 import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.vfs2.*;
+import org.apache.commons.vfs2.impl.StandardFileSystemManager;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
 import org.apache.maven.artifact.repository.layout.DefaultRepositoryLayout;
@@ -349,33 +354,41 @@ public class CreateApplicationBundleMojo extends AbstractMojo {
 
         // 5. Check if JRE should be embedded. Check JRE path. Copy JRE
         if (jrePath != null) {
-            File f = new File(jrePath);
-            if (f.exists() && f.isDirectory()) {
-                // Check if the source folder is a jdk-home
-                File pluginsDirectory = new File(contentsDir, "PlugIns/JRE/Contents/Home/jre");
-                pluginsDirectory.mkdirs();
-
-                File sourceFolder = new File(jrePath, "Contents/Home");
-                if (new File(jrePath, "Contents/Home/jre").exists()) {
-                    sourceFolder = new File(jrePath, "Contents/Home/jre");
+            try (StandardFileSystemManager fsManager = new StandardFileSystemManager()) {
+                fsManager.init();
+                // Check if path is relative and convert to absolute
+                Path path = Paths.get(jrePath);
+                if (Files.isDirectory(path)) {
+                    jrePath = path.toAbsolutePath().toString();
                 }
-
-                try {
-                    getLog().info("Copying the JRE Folder from : [" + sourceFolder + "] to PlugIn folder: [" + pluginsDirectory + "]");
-                    FileUtils.copyDirectoryStructure(sourceFolder, pluginsDirectory);
-                    File binFolder = new File(pluginsDirectory, "bin");
-                    //Setting execute permissions on executables in JRE
-                    for (String filename : binFolder.list()) {
-                        new File(binFolder, filename).setExecutable(true, false);
+                FileObject jreRoot = fsManager.resolveFile(jrePath);
+                if (jreRoot.exists()) {
+                    // Check if the source folder is a jdk-home
+                    FileObject pluginsDirectory = fsManager.resolveFile(contentsDir, "PlugIns/JRE/Contents/Home/jre");
+                    if (!pluginsDirectory.exists()) {
+                        pluginsDirectory.createFile();
                     }
 
-                    new File (pluginsDirectory, "lib/jspawnhelper").setExecutable(true,false);
+                    FileObject sourceFolder = fsManager.resolveFile(jreRoot, "Contents/Home");
+                    if (!sourceFolder.exists()) {
+                        sourceFolder = fsManager.resolveFile(jreRoot, "Contents/Home/jre");
+                    }
+
+                    getLog().info("Copying the JRE Folder from : [" + sourceFolder + "] to PlugIn folder: [" + pluginsDirectory + "]");
+                    pluginsDirectory.copyFrom(sourceFolder, new AllFileSelector());
+                    FileObject binFolder = fsManager.resolveFile(pluginsDirectory, "bin");
+                    //Setting execute permissions on executables in JRE
+                    for (FileObject child : binFolder.getChildren()) {
+                        child.setExecutable(true, false);
+                    }
+
+                    fsManager.resolveFile(pluginsDirectory, "lib/jspawnhelper").setExecutable(true,false);
                     embeddJre = true;
-                } catch (IOException ex) {
-                    throw new MojoExecutionException("Error copying folder " + f + " to " + pluginsDirectory, ex);
+                } else {
+                    getLog().warn("JRE not found check jrePath setting in pom.xml");
                 }
-            } else {
-                getLog().warn("JRE not found check jrePath setting in pom.xml");
+            } catch (FileSystemException ex) {
+                throw new MojoExecutionException("Error copying JRE from path: " + jrePath, ex);
             }
         } else if (jreFullPath != null){
             getLog().info("JRE Full path is used [" + jreFullPath + "]");
