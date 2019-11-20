@@ -4,7 +4,7 @@
   <groupId>sh.tak.appbundler</groupId>
   <artifactId>appbundle-maven-plugin</artifactId>
   <packaging>maven-plugin</packaging>
-  <version>1.2.1-SNAPSHOT</version>
+  <version>1.2.2-SNAPSHOT</version>
 
   <name>appbundle-maven-plugin</name>
   <url>https://github.com/federkasten/appbundle-maven-plugin</url>
@@ -59,7 +59,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.5.1</version>
         <configuration>
-          <target>1.6</target>
+          <target>1.8</target>
+          <source>1.8</source>
         </configuration>
       </plugin>
     </plugins>
@@ -101,6 +102,11 @@
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-core</artifactId>
       <version>3.3.9</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-vfs2</artifactId>
+      <version>2.4.1</version>
     </dependency>
   </dependencies>
 
