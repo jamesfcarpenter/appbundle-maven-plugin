@@ -425,6 +425,15 @@ public class CreateApplicationBundleMojo extends AbstractMojo {
 
         // 8. Create the DMG file
         if (generateDiskImageFile) {
+            // Create symbolic link for Applications folder
+            Path target = Paths.get("/Applications");
+            Path link = Paths.get(buildDirectory.getAbsolutePath(), "Applications");
+            try {
+                getLog().info("Creating symbolic link: " + link + " for target: " + target);
+                Files.createSymbolicLink(link, target);
+            } catch (IOException ex) {
+                throw new MojoExecutionException("Error creating Applications symbolic link", ex);
+            }
             if (SystemUtils.IS_OS_MAC_OSX || SystemUtils.IS_OS_MAC) {
                 getLog().info("Generating the Disk Image file");
                 Commandline dmg = new Commandline();
@@ -497,6 +506,13 @@ public class CreateApplicationBundleMojo extends AbstractMojo {
 
             } else {
                 getLog().warn("Disk Image file cannot be generated in non Mac OS X and Linux environments");
+            }
+            // Delete symbolic link for Applications folder
+            try {
+                getLog().info("Deleting symbolic link: " + link);
+                Files.delete(link);
+            } catch (IOException ex) {
+                throw new MojoExecutionException("Error deleting Applications symbolic link", ex);
             }
         }
 
