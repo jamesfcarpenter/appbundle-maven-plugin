@@ -310,6 +310,18 @@ public class CreateApplicationBundleMojo extends AbstractMojo {
         File macOSDirectory = new File(contentsDir, "MacOS");
         macOSDirectory.mkdirs();
 
+        // 1a. Copy the project bin folder to Contents/bin if it exists
+        File projectBinDirectory = new File(project.getBasedir(), "bin");
+        if (projectBinDirectory.exists()) {
+            File binDirectory = new File(contentsDir, "bin");
+            macOSDirectory.mkdirs();
+            try {
+                FileUtils.copyDirectory(projectBinDirectory, binDirectory);
+            } catch (IOException ex) {
+                throw new MojoExecutionException("Could not copy " + projectBinDirectory + " to directory " + binDirectory, ex);
+            }
+        }
+
         // 2. Copy in the native java application stub
         getLog().info("Copying the native Java Application Stub");
         File launcher = new File(macOSDirectory, javaLauncherName);
